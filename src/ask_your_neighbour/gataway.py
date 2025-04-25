@@ -40,7 +40,7 @@ def _get_event_loop() -> asyncio.AbstractEventLoop:
     return _thread_local.loop  # type: ignore
 
 
-async def _user_query(query: str, conversation_state: ConversationState) -> str:
+async def _user_query(conversation_state: ConversationState) -> str:
     """Process a user query using an AI agent."""
     with trace("ask-your-neighbour"):
         await conversation_state.document_store.upload_files(conversation_state.files)
@@ -90,18 +90,17 @@ async def _user_query(query: str, conversation_state: ConversationState) -> str:
                 ],
             )
 
-            result = await Runner.run(agent, query, max_turns=25)
+            result = await Runner.run(agent, conversation_state.all_messages, max_turns=25)
 
             return cast(str, result.final_output)
 
 
-def user_query(query: str, conversation_state: ConversationState) -> str:
+def user_query(conversation_state: ConversationState) -> str:
     """Process a user query using an AI agent."""
     # Get event loop for the current thread
     loop = _get_event_loop()
-
     # Run the agent
-    return loop.run_until_complete(_user_query(query, conversation_state))  # type: ignore
+    return loop.run_until_complete(_user_query(conversation_state))  # type: ignore
 
 
 if __name__ == "__main__":
