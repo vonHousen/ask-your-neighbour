@@ -1,3 +1,4 @@
+import functools
 import streamlit as st
 import os
 from dotenv import load_dotenv
@@ -7,6 +8,7 @@ from ask_your_neighbour.gataway import user_query
 
 
 # Load environment variables from .env file
+@functools.lru_cache(maxsize=1)
 def load_environment():
     # Try to load from .env file
     env_loaded = load_dotenv()
@@ -43,7 +45,12 @@ def main():
             st.markdown(message["content"])
     
     # Accept user input
-    if prompt := st.chat_input("What would you like to ask?"):
+    if prompt_struct := st.chat_input("What would you like to ask?", accept_file=True):
+        prompt = prompt_struct.get("text", "")
+        files = prompt_struct.get("files", [])
+        
+        LOGGER.info(f"User prompt: {prompt}, files: {files}.")
+
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
         
@@ -54,14 +61,12 @@ def main():
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                response = user_query(prompt)
+                response = user_query(prompt, files)
+            LOGGER.info(f"Assistant response: {response}")
             st.markdown(response)
             
         # Add assistant response to chat history
         st.session_state.messages.append({"role": "assistant", "content": response})
-        
-        LOGGER.info(f"User prompt: {prompt}")
-        LOGGER.info(f"Assistant response: {response}")
 
 if __name__ == "__main__":
     main() 

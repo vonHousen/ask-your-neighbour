@@ -1,13 +1,17 @@
+import functools
 import os
+from typing import Any
 from agents import Agent, Runner
 import asyncio
 import threading
 from ask_your_neighbour.utils import LOGGER
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 # Dictionary to store event loops per thread
 _thread_local = threading.local()
 
 
+@functools.lru_cache(maxsize=1)
 def _get_event_loop():
     """Get or create an event loop for the current thread."""
     if not hasattr(_thread_local, 'loop') or _thread_local.loop is None:
@@ -24,7 +28,7 @@ def _get_event_loop():
     return _thread_local.loop
 
 
-def user_query(query: str) -> str:
+def user_query(query: str, files: list[UploadedFile]) -> str:
     """Process a user query using an AI agent."""
     agent = Agent(
         name="Assistant", 
