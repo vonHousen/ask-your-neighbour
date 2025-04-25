@@ -1,7 +1,7 @@
 import asyncio
 import functools
 import threading
-from typing import Any, cast
+from typing import cast
 
 from agents import Agent, Runner, trace
 from agents.mcp.server import MCPServerSse
@@ -77,6 +77,6 @@ def user_query(query: str, conversation_state: ConversationState) -> str:
 if __name__ == "__main__":
     # Example usage
     conversation_state = ConversationState()
-    query = "Czy Powiśle w Warszawie jest dobrym miejscem do życia dla młodego rodzica?"
+    query = "Czy Powiśle w Warszawie jest dobrym miejscem do życia dla młodego rodzica? I czy jest dobre miejsce do jazdy samochodem elektrycznym?"
     result = user_query(query, conversation_state)
     print(result)
