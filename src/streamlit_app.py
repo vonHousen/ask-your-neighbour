@@ -3,6 +3,7 @@ import streamlit as st
 import os
 from dotenv import load_dotenv
 
+from ask_your_neighbour.conversation_state import ConversationState
 from ask_your_neighbour.utils import LOGGER
 from ask_your_neighbour.gataway import user_query
 
@@ -38,8 +39,8 @@ def main():
     # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
-    if "files" not in st.session_state:
-        st.session_state.files = []
+    if "conversation_state" not in st.session_state:
+        st.session_state.conversation_state = ConversationState()
     
     # Display chat messages from history
     for message in st.session_state.messages:
@@ -54,8 +55,10 @@ def main():
         LOGGER.info(f"User prompt: {prompt}, files: {files}.")
 
         # Add user message to chat history
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        st.session_state.files.extend(files)
+        user_message = {"role": "user", "content": prompt}
+        st.session_state.messages.append(user_message)
+        st.session_state.conversation_state.all_messages.append(user_message)
+        st.session_state.conversation_state.files.extend(files)
 
         # Display user message in chat message container
         with st.chat_message("user"):
@@ -64,12 +67,14 @@ def main():
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                response = user_query(prompt, st.session_state.files)
+                response = user_query(prompt, st.session_state.conversation_state)
             LOGGER.info(f"Assistant response: {response}")
             st.markdown(response)
             
         # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": response})
+        assistant_message = {"role": "assistant", "content": response}
+        st.session_state.messages.append(assistant_message)
+        st.session_state.conversation_state.all_messages.append(assistant_message)
 
 if __name__ == "__main__":
     main() 

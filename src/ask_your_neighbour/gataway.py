@@ -5,7 +5,7 @@ from agents import Agent, Runner
 import asyncio
 import threading
 from ask_your_neighbour.utils import LOGGER
-from streamlit.runtime.uploaded_file_manager import UploadedFile
+from ask_your_neighbour.conversation_state import ConversationState
 
 # Dictionary to store event loops per thread
 _thread_local = threading.local()
@@ -28,7 +28,7 @@ def _get_event_loop():
     return _thread_local.loop
 
 
-def user_query(query: str, files: list[UploadedFile]) -> str:
+def user_query(query: str, conversation_state: ConversationState) -> str:
     """Process a user query using an AI agent."""
     agent = Agent(
         name="Assistant", 
