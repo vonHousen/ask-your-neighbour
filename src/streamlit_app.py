@@ -49,7 +49,7 @@ def main():
     
     # Accept user input
     if prompt_struct := st.chat_input("What would you like to ask?", accept_file=True):
-        prompt = prompt_struct.get("text", "")
+        prompt = prompt_struct["text"]  # it should always be populated
         files = prompt_struct.get("files", [])
         
         LOGGER.info(f"User prompt: {prompt}, files: {files}.")
