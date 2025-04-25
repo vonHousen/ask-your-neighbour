@@ -4,10 +4,12 @@ A simple chat application built with Streamlit.
 
 ## Setup
 
-1. Run
+1. Install dependencies:
    ```
    uv sync
    ```
+
+2. Set up environment variable - create a `.env` file in the root directory based on `.env.example`
 
 ## Running the Chat App
 
