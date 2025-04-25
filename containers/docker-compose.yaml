@@ -1,0 +1,8 @@
+services:
+  osm-mcp:
+    build:
+      context: ..
+      dockerfile: containers/osm-mcp.Dockerfile
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
