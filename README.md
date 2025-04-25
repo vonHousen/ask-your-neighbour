@@ -11,6 +11,14 @@ A simple chat application built with Streamlit.
 
 2. Set up environment variable - create a `.env` file in the root directory based on `.env.example`
 
+## Run MCP Servers
+
+To run the MCP servers, use the following command:
+
+```bash
+docker compose -f containers/docker-compose.yaml -p mcp-servers up --build
+```
+
 ## Running the Chat App
 
 To start the Streamlit chat application:
