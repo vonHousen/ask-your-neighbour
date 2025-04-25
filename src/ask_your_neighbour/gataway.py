@@ -26,7 +26,11 @@ def _get_event_loop():
 
 def user_query(query: str) -> str:
     """Process a user query using an AI agent."""
-    agent = Agent(name="Assistant", instructions="You are a helpful assistant")
+    agent = Agent(
+        name="Assistant", 
+        instructions="You are a helpful assistant",
+        model="gpt-4o-mini",
+    )
     
     # Get event loop for the current thread
     loop = _get_event_loop()

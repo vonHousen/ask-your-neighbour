@@ -53,7 +53,8 @@ def main():
         
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
-            response = user_query(prompt)
+            with st.spinner("Thinking..."):
+                response = user_query(prompt)
             st.markdown(response)
             
         # Add assistant response to chat history
