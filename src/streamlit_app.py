@@ -38,6 +38,8 @@ def main():
     # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
+    if "files" not in st.session_state:
+        st.session_state.files = []
     
     # Display chat messages from history
     for message in st.session_state.messages:
@@ -53,7 +55,8 @@ def main():
 
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
-        
+        st.session_state.files.extend(files)
+
         # Display user message in chat message container
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -61,7 +64,7 @@ def main():
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                response = user_query(prompt, files)
+                response = user_query(prompt, st.session_state.files)
             LOGGER.info(f"Assistant response: {response}")
             st.markdown(response)
             
