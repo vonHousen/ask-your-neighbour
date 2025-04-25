@@ -1,12 +1,15 @@
+import functools
 import streamlit as st
 import os
 from dotenv import load_dotenv
 
+from ask_your_neighbour.conversation_state import ConversationState
 from ask_your_neighbour.utils import LOGGER
 from ask_your_neighbour.gataway import user_query
 
 
 # Load environment variables from .env file
+@functools.lru_cache(maxsize=1)
 def load_environment():
     # Try to load from .env file
     env_loaded = load_dotenv()
@@ -36,6 +39,8 @@ def main():
     # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
+    if "conversation_state" not in st.session_state:
+        st.session_state.conversation_state = ConversationState()
     
     # Display chat messages from history
     for message in st.session_state.messages:
@@ -43,10 +48,18 @@ def main():
             st.markdown(message["content"])
     
     # Accept user input
-    if prompt := st.chat_input("What would you like to ask?"):
-        # Add user message to chat history
-        st.session_state.messages.append({"role": "user", "content": prompt})
+    if prompt_struct := st.chat_input("What would you like to ask?", accept_file=True):
+        prompt = prompt_struct["text"]  # it should always be populated
+        files = prompt_struct.get("files", [])
         
+        LOGGER.info(f"User prompt: {prompt}, files: {files}.")
+
+        # Add user message to chat history
+        user_message = {"role": "user", "content": prompt}
+        st.session_state.messages.append(user_message)
+        st.session_state.conversation_state.all_messages.append(user_message)
+        st.session_state.conversation_state.files.extend(files)
+
         # Display user message in chat message container
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -54,14 +67,14 @@ def main():
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                response = user_query(prompt)
+                response = user_query(prompt, st.session_state.conversation_state)
+            LOGGER.info(f"Assistant response: {response}")
             st.markdown(response)
             
         # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        
-        LOGGER.info(f"User prompt: {prompt}")
-        LOGGER.info(f"Assistant response: {response}")
+        assistant_message = {"role": "assistant", "content": response}
+        st.session_state.messages.append(assistant_message)
+        st.session_state.conversation_state.all_messages.append(assistant_message)
 
 if __name__ == "__main__":
     main() 
