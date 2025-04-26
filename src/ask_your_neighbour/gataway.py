@@ -16,7 +16,7 @@ from ask_your_neighbour.agent_specs.document_agent import DOCUMENT_EXPLORER_DESC
 from ask_your_neighbour.agent_specs.orchestrator_agent import ORCHESTRATION_INSTRUCTIONS
 from ask_your_neighbour.agent_specs.osm_agent import LOCATION_EXPLORER_DESCRIPTION, LOCATION_EXPLORER_INSTRUCTIONS
 from ask_your_neighbour.agent_specs.summarization_agent import SUMMARIZATION_DESCRIPTION, SUMMARIZATION_INSTRUCTIONS
-from ask_your_neighbour.conversation_guardrail import guardrail_agent
+from ask_your_neighbour.conversation_guardrail import guardrail_check
 from ask_your_neighbour.conversation_state import ConversationState
 from ask_your_neighbour.utils import LOGGER
 
@@ -89,7 +89,7 @@ async def _user_query(conversation_state: ConversationState) -> str:
                         tool_description=DOCUMENT_EXPLORER_DESCRIPTION,
                     ),
                 ],
-                input_guardrails=[guardrail_agent],
+                input_guardrails=[guardrail_check],
             )
 
             result = await Runner.run(agent, conversation_state.all_messages, max_turns=25)
