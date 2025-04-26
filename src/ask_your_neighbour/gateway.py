@@ -16,8 +16,8 @@ from agents import (
     handoff,
     trace,
 )
-from openai.types.responses.web_search_tool_param import UserLocation
 from agents.mcp.server import MCPServerSse
+from openai.types.responses.web_search_tool_param import UserLocation
 
 from ask_your_neighbour.agent_specs.document_agent import DOCUMENT_EXPLORER_DESCRIPTION, DOCUMENT_EXPLORER_INSTRUCTIONS
 from ask_your_neighbour.agent_specs.orchestrator_agent import ORCHESTRATION_INSTRUCTIONS
@@ -72,7 +72,7 @@ async def _user_query(conversation_state: ConversationState) -> str:
                 model="gpt-4.1",
             )
 
-            decument_agent = Agent(
+            document_agent = Agent(
                 name="document_location_explorer",
                 instructions=DOCUMENT_EXPLORER_INSTRUCTIONS,
                 model="gpt-4o-mini",
@@ -106,7 +106,7 @@ async def _user_query(conversation_state: ConversationState) -> str:
                         tool_name="location_explorer",
                         tool_description=LOCATION_EXPLORER_DESCRIPTION,
                     ),
-                    decument_agent.as_tool(
+                    document_agent.as_tool(
                         tool_name="document_location_explorer",
                         tool_description=DOCUMENT_EXPLORER_DESCRIPTION,
                     ),
