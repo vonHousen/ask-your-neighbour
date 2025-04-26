@@ -6,6 +6,7 @@ from typing import cast
 from agents import (
     Agent,
     FileSearchTool,
+    InputGuardrailTripwireTriggered,
     ModelSettings,
     Runner,
     trace,
@@ -16,6 +17,7 @@ from ask_your_neighbour.agent_specs.document_agent import DOCUMENT_EXPLORER_DESC
 from ask_your_neighbour.agent_specs.orchestrator_agent import ORCHESTRATION_INSTRUCTIONS
 from ask_your_neighbour.agent_specs.osm_agent import LOCATION_EXPLORER_DESCRIPTION, LOCATION_EXPLORER_INSTRUCTIONS
 from ask_your_neighbour.agent_specs.summarization_agent import SUMMARIZATION_DESCRIPTION, SUMMARIZATION_INSTRUCTIONS
+from ask_your_neighbour.conversation_guardrail import guardrail_check
 from ask_your_neighbour.conversation_state import ConversationState
 from ask_your_neighbour.utils import LOGGER
 
@@ -40,7 +42,7 @@ def _get_event_loop() -> asyncio.AbstractEventLoop:
     return _thread_local.loop  # type: ignore
 
 
-async def _user_query(query: str, conversation_state: ConversationState) -> str:
+async def _user_query(conversation_state: ConversationState) -> str:
     """Process a user query using an AI agent."""
     with trace("ask-your-neighbour"):
         await conversation_state.document_store.upload_files(conversation_state.files)
@@ -89,20 +91,23 @@ async def _user_query(query: str, conversation_state: ConversationState) -> str:
                         tool_description=DOCUMENT_EXPLORER_DESCRIPTION,
                     ),
                 ],
+                input_guardrails=[guardrail_check],
             )
 
-            result = await Runner.run(agent, query, max_turns=25)
+            try:
+                result = await Runner.run(agent, conversation_state.all_messages, max_turns=25)
+                response = cast(str, result.final_output)
+            except InputGuardrailTripwireTriggered:
+                response = "I'm sorry, I can't answer that question."
+            return response
 
-            return cast(str, result.final_output)
 
-
-def user_query(query: str, conversation_state: ConversationState) -> str:
+def user_query(conversation_state: ConversationState) -> str:
     """Process a user query using an AI agent."""
     # Get event loop for the current thread
     loop = _get_event_loop()
-
     # Run the agent
-    return loop.run_until_complete(_user_query(query, conversation_state))  # type: ignore
+    return loop.run_until_complete(_user_query(conversation_state))  # type: ignore
 
 
 if __name__ == "__main__":
