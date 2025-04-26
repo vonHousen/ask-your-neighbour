@@ -3,9 +3,16 @@ import functools
 import threading
 from typing import cast
 
-from agents import Agent, FunctionToolResult, ModelSettings, RunContextWrapper, Runner, TContext, ToolsToFinalOutputResult, trace
+from agents import (
+    Agent,
+    FileSearchTool,
+    ModelSettings,
+    Runner,
+    trace,
+)
 from agents.mcp.server import MCPServerSse
 
+from ask_your_neighbour.agent_specs.document_agent import DOCUMENT_EXPLORER_DESCRIPTION, DOCUMENT_EXPLORER_INSTRUCTIONS
 from ask_your_neighbour.agent_specs.orchestrator_agent import ORCHESTRATION_INSTRUCTIONS
 from ask_your_neighbour.agent_specs.osm_agent import LOCATION_EXPLORER_DESCRIPTION, LOCATION_EXPLORER_INSTRUCTIONS
 from ask_your_neighbour.agent_specs.summarization_agent import SUMMARIZATION_DESCRIPTION, SUMMARIZATION_INSTRUCTIONS
@@ -36,6 +43,8 @@ def _get_event_loop() -> asyncio.AbstractEventLoop:
 async def _user_query(query: str, conversation_state: ConversationState) -> str:
     """Process a user query using an AI agent."""
     with trace("ask-your-neighbour"):
+        await conversation_state.document_store.upload_files(conversation_state.files)
+
         async with MCPServerSse(
             params={"url": "http://localhost:8000/sse"},
             client_session_timeout_seconds=600,
@@ -54,6 +63,13 @@ async def _user_query(query: str, conversation_state: ConversationState) -> str:
                 model="gpt-4.1",
             )
 
+            decument_agent = Agent(
+                name="document_location_explorer",
+                instructions=DOCUMENT_EXPLORER_INSTRUCTIONS,
+                model="gpt-4o-mini",
+                tools=[FileSearchTool(vector_store_ids=[conversation_state.document_store.vector_store_id])],
+            )
+
             agent = Agent(
                 name="orchestrator_agent",
                 instructions=ORCHESTRATION_INSTRUCTIONS,
@@ -67,6 +83,10 @@ async def _user_query(query: str, conversation_state: ConversationState) -> str:
                         tool_name="summarization_agent",
                         tool_description=SUMMARIZATION_DESCRIPTION,
                     ),
+                    decument_agent.as_tool(
+                        tool_name="document_location_explorer",
+                        tool_description=DOCUMENT_EXPLORER_DESCRIPTION,
+                    ),
                 ],
             )
 
@@ -77,7 +97,6 @@ async def _user_query(query: str, conversation_state: ConversationState) -> str:
 
 def user_query(query: str, conversation_state: ConversationState) -> str:
     """Process a user query using an AI agent."""
-
     # Get event loop for the current thread
     loop = _get_event_loop()
 
@@ -88,6 +107,7 @@ def user_query(query: str, conversation_state: ConversationState) -> str:
 if __name__ == "__main__":
     # Example usage
     conversation_state = ConversationState()
-    query = "Czy Powiśle w Warszawie jest dobrym miejscem do życia dla młodego rodzica? I czy jest dobre miejsce do jazdy samochodem elektrycznym?"
+    query = """Czy Powiśle w Warszawie jest dobrym miejscem do życia dla młodego rodzica?
+                 I czy jest dobre miejsce do jazdy samochodem elektrycznym?"""
     result = user_query(query, conversation_state)
     print(result)
