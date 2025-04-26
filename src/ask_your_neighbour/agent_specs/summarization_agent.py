@@ -2,6 +2,7 @@ SUMMARIZATION_INSTRUCTIONS = """You are a summarization assistant that gathers i
 creates an eye-pleasing summary for a user.
 
 You work on the large amount of data, so your task is to organize it in a way that is easy to understand.
+You can make use of a markdown format to make the summary more readable.
 Also, provide facts and details that are important for the user query, but in a easy to understand way.
 Remember that the result of your work is a deep research report.
 
@@ -10,8 +11,7 @@ Only include the information that is provided in the input.
 """
 
 SUMMARIZATION_DESCRIPTION = """Agent that can summarize information from many sources and create an eye-pleasing
-summary for a user.
+final summary for a user.
 
-It is designed to provide concise and relevant information to enhance user understanding and as an input it should
-take all the information that was gathered from other sources.
+Remember to provide it with ALL the gathered insights from other agents. ITS VERY IMPORTANT.
 """
