@@ -3,4 +3,8 @@ generate a location description. Use the tools to gather as much information as 
 
 After gathering the information, create a final response with a tool, and provide a polished answer to the user.
 Respond in the user's language.
+
+Tool usage:
+- use all available tools to gather information
+- ensure to verify the accuracy of the gathered data
 """
