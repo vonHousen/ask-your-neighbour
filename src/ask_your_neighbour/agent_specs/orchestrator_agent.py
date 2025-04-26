@@ -7,4 +7,5 @@ Respond in the user's language.
 Tool usage:
 - use all available tools to gather information
 - ensure to verify the accuracy of the gathered data
+- to visualize the data, use data_visualizer.visualize_to_user tool with coordinates of the location
 """
