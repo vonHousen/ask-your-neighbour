@@ -26,6 +26,7 @@ from ask_your_neighbour.agent_specs.search_agent import SEARCH_AGENT_DESCRIPTION
 from ask_your_neighbour.agent_specs.summarization_agent import SUMMARIZATION_DESCRIPTION, SUMMARIZATION_INSTRUCTIONS
 from ask_your_neighbour.conversation_guardrail import guardrail_check
 from ask_your_neighbour.conversation_state import ConversationState
+from ask_your_neighbour.geoportal import fetch_map
 from ask_your_neighbour.utils import LOGGER
 
 # Dictionary to store event loops per thread
@@ -114,6 +115,7 @@ async def _user_query(conversation_state: ConversationState) -> str:
                         tool_name="search_agent",
                         tool_description=SEARCH_AGENT_DESCRIPTION,
                     ),
+                    fetch_map
                 ],
                 handoffs=[handoff(
                     agent=summarization_agent,
