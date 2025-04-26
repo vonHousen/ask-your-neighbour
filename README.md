@@ -23,6 +23,13 @@ This project was done during the `AI Tinkerers - Warsaw Hackathon` on 2025.04.25
 ### The team
 Our team is titled `RuntimeError`. 
 
+## The design
+The demo app was made as a simple chat in `streamlit`, however under the hood it makes use of a complex system of agents utilizing [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/).
+
+Agents architecture
+![Agents architecture](docs/img/agents_architecture.png)
+
+
 ## Setup
 
 1. Install dependencies:
