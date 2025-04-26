@@ -48,6 +48,7 @@ async def _user_query(query: str, conversation_state: ConversationState) -> str:
         async with MCPServerSse(
             params={"url": "http://localhost:8000/sse"},
             client_session_timeout_seconds=600,
+            cache_tools_list=True,
         ) as server:
             location_agent = Agent(
                 name="location_explorer",
