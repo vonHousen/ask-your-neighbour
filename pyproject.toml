@@ -8,6 +8,7 @@ dependencies = [
     "openai-agents>=0.0.13",
     "streamlit>=1.44.1",
     "python-dotenv>=1.0.0",
+    "owslib>=0.33.0",
 ]
 
 [dependency-groups]
