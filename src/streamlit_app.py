@@ -78,6 +78,10 @@ def main() -> None:
                 response = user_query(st.session_state.conversation_state)
             LOGGER.info(f"Assistant response: {response}")
 
+            if st.session_state.conversation_state.image is not None:
+                st.image(st.session_state.conversation_state.image, use_container_width=True)
+                st.session_state.conversation_state.image = None
+
         # Add assistant response to chat history
         assistant_message = {"role": "assistant", "content": response}
         st.session_state.messages.append(assistant_message)

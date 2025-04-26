@@ -9,6 +9,7 @@ from agents import (
     Agent,
     AgentHooks,
     FileSearchTool,
+    FunctionTool,
     InputGuardrailTripwireTriggered,
     ModelSettings,
     RunContextWrapper,
@@ -29,7 +30,7 @@ from ask_your_neighbour.agent_specs.search_agent import SEARCH_AGENT_DESCRIPTION
 from ask_your_neighbour.agent_specs.summarization_agent import SUMMARIZATION_DESCRIPTION, SUMMARIZATION_INSTRUCTIONS
 from ask_your_neighbour.conversation_guardrail import guardrail_check
 from ask_your_neighbour.conversation_state import ConversationState
-from ask_your_neighbour.geoportal import fetch_map
+from ask_your_neighbour.geoportal import VisualizationRequest, visualize_data_to_user
 from ask_your_neighbour.utils import LOGGER, PULSE_BOX
 
 # Dictionary to store event loops per thread
@@ -56,10 +57,21 @@ def _get_event_loop() -> asyncio.AbstractEventLoop:
 async def _user_query(conversation_state: ConversationState) -> str:
     """Process a user query using an AI agent."""
     with trace("ask-your-neighbour"):
+
+        visualize_to_user = visualize_data_to_user(conversation_state)
+
+        visuaize_to_user_tool = FunctionTool(
+            name="visualize_map_to_user",
+            description="Fetch and shows user visualization",
+            params_json_schema=VisualizationRequest.model_json_schema(),
+            on_invoke_tool=visualize_to_user,
+
+        )
+
         async with MCPServerSse(
-            params={"url": "http://localhost:8000/sse"},
-            client_session_timeout_seconds=600,
-            cache_tools_list=True,
+                params={"url": "http://localhost:8000/sse"},
+                client_session_timeout_seconds=600,
+                cache_tools_list=True,
         ) as server:
             location_agent = Agent(
                 name="location_explorer",
@@ -117,7 +129,7 @@ async def _user_query(conversation_state: ConversationState) -> str:
                         tool_name="search_agent",
                         tool_description=SEARCH_AGENT_DESCRIPTION,
                     ),
-                    fetch_map
+                    visuaize_to_user_tool
                 ],
                 handoffs=[handoff(
                     agent=summarization_agent,
