@@ -12,13 +12,17 @@ from agents import (
     RunContextWrapper,
     Runner,
     TContext,
+    WebSearchTool,
+    handoff,
     trace,
 )
+from openai.types.responses.web_search_tool_param import UserLocation
 from agents.mcp.server import MCPServerSse
 
 from ask_your_neighbour.agent_specs.document_agent import DOCUMENT_EXPLORER_DESCRIPTION, DOCUMENT_EXPLORER_INSTRUCTIONS
 from ask_your_neighbour.agent_specs.orchestrator_agent import ORCHESTRATION_INSTRUCTIONS
 from ask_your_neighbour.agent_specs.osm_agent import LOCATION_EXPLORER_DESCRIPTION, LOCATION_EXPLORER_INSTRUCTIONS
+from ask_your_neighbour.agent_specs.search_agent import SEARCH_AGENT_DESCRIPTION, SEARCH_AGENT_INSTRUCTIONS
 from ask_your_neighbour.agent_specs.summarization_agent import SUMMARIZATION_DESCRIPTION, SUMMARIZATION_INSTRUCTIONS
 from ask_your_neighbour.conversation_guardrail import guardrail_check
 from ask_your_neighbour.conversation_state import ConversationState
@@ -77,6 +81,22 @@ async def _user_query(conversation_state: ConversationState) -> str:
                 hooks=DocumentAgentHooks(conversation_state),
             )
 
+            search_agent = Agent(
+                name="search_agent",
+                instructions=SEARCH_AGENT_INSTRUCTIONS,
+                model="gpt-4.1",
+                tools=[
+                    WebSearchTool(
+                        user_location=UserLocation(
+                            type="approximate",
+                            country="PL",
+                            city="Warsaw",   # TODO hardcoded
+                            region="Warsaw",
+                        )
+                    )
+                ],
+            )
+
             agent = Agent(
                 name="orchestrator_agent",
                 instructions=ORCHESTRATION_INSTRUCTIONS,
@@ -86,15 +106,19 @@ async def _user_query(conversation_state: ConversationState) -> str:
                         tool_name="location_explorer",
                         tool_description=LOCATION_EXPLORER_DESCRIPTION,
                     ),
-                    summarization_agent.as_tool(
-                        tool_name="summarization_agent",
-                        tool_description=SUMMARIZATION_DESCRIPTION,
-                    ),
                     decument_agent.as_tool(
                         tool_name="document_location_explorer",
                         tool_description=DOCUMENT_EXPLORER_DESCRIPTION,
                     ),
+                    search_agent.as_tool(
+                        tool_name="search_agent",
+                        tool_description=SEARCH_AGENT_DESCRIPTION,
+                    ),
                 ],
+                handoffs=[handoff(
+                    agent=summarization_agent,
+                    tool_description_override=SUMMARIZATION_DESCRIPTION,
+                )],
                 input_guardrails=[guardrail_check],
             )
 
