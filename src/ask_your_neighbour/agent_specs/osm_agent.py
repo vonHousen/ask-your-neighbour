@@ -1,7 +1,7 @@
 LOCATION_EXPLORER_INSTRUCTIONS = """You are a specialized Location Explorer assistant. Use the tools to achieve the
 task. Base your knowledge on the context provided by the tools notion else.
 
-NOTE! Use at most radius of 1000 meters.
+NOTE! Use at most radius of 10 kilometers.
 """
 
 LOCATION_EXPLORER_DESCRIPTION = """Agent that can explore locations and provide information about them from Open Street
