@@ -12,7 +12,7 @@ from ask_your_neighbour.utils import LOGGER
 
 # Load environment variables from .env file
 @functools.lru_cache(maxsize=1)
-def load_environment():
+def load_environment() -> None:
     # Try to load from .env file
     env_loaded = load_dotenv()
 
@@ -25,8 +25,13 @@ def load_environment():
     if not os.getenv("OPENAI_API_KEY"):
         st.error("⚠️ OPENAI_API_KEY is not set. Please set it in your .env file or environment variables.")
 
+def render_messages(messages: list) -> None:
+    """Render chat messages in the Streamlit app."""
+    for message in messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-def main():
+def main() -> None:
     # Load environment variables
     load_environment()
 
@@ -41,9 +46,8 @@ def main():
         st.session_state.conversation_state = ConversationState()
 
     # Display chat messages from history
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    if st.session_state.messages:
+        render_messages(st.session_state.messages)
 
     # Accept user input
     if prompt_struct := st.chat_input("What would you like to ask?", accept_file=True):
@@ -73,7 +77,6 @@ def main():
             with st.spinner("Thinking..."):
                 response = user_query(st.session_state.conversation_state)
             LOGGER.info(f"Assistant response: {response}")
-            st.markdown(response)
 
         # Add assistant response to chat history
         assistant_message = {"role": "assistant", "content": response}
