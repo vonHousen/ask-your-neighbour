@@ -2,6 +2,7 @@ LOCATION_EXPLORER_INSTRUCTIONS = """You are a specialized Location Explorer assi
 task. Base your knowledge on the context provided by the tools notion else.
 
 NOTE! Use at most radius of 1000 meters.
+NOTE: Don't use 'explore_area` tool under any circumstances!
 """
 
 LOCATION_EXPLORER_DESCRIPTION = """Agent that can explore locations and provide information about them from Open Street
@@ -10,7 +11,6 @@ Maps. The agent can be tasked with returning following information:
 - Get route directions between locations
 - Search for places by category within a bounding box
 - Suggest optimal meeting points for multiple people
-- Explore areas and get comprehensive location information
 - Find schools and educational institutions near a location
 - Analyze commute options between home and work
 - Locate EV charging stations with connector and power filtering
