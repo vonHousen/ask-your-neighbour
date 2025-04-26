@@ -8,21 +8,19 @@ from agents import (
 )
 from pydantic import BaseModel
 
+from ask_your_neighbour.agent_specs.guardrail_agent import GUARDRAIL_AGENT_INSTRUCTIONS
 from ask_your_neighbour.utils import LOGGER
 
 
 class ConversationGuardrail(BaseModel):
     """A guardrail for the conversation."""
-    is_conversation_legit: bool
+    is_conversation_in_scope: bool
     reason: str
 
 
 guardrail_agent = Agent(
     name="Guardrail check",
-    instructions=(
-        "You are a guardrail for the conversation. "
-        "You are responsible for checking if the conversation is legit, or someone is trying to break the rules. "
-    ),
+    instructions=GUARDRAIL_AGENT_INSTRUCTIONS,
     model="gpt-4.1-mini",
     output_type=ConversationGuardrail,
 )
@@ -41,5 +39,5 @@ async def guardrail_check(
 
     return GuardrailFunctionOutput(
         output_info=final_output,
-        tripwire_triggered=not final_output.is_conversation_legit,
+        tripwire_triggered=(not final_output.is_conversation_in_scope),
     )

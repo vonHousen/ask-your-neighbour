@@ -6,6 +6,7 @@ from typing import cast
 from agents import (
     Agent,
     FileSearchTool,
+    InputGuardrailTripwireTriggered,
     ModelSettings,
     Runner,
     trace,
@@ -92,9 +93,12 @@ async def _user_query(conversation_state: ConversationState) -> str:
                 input_guardrails=[guardrail_check],
             )
 
-            result = await Runner.run(agent, conversation_state.all_messages, max_turns=25)
-
-            return cast(str, result.final_output)
+            try:
+                result = await Runner.run(agent, conversation_state.all_messages, max_turns=25)
+                response = cast(str, result.final_output)
+            except InputGuardrailTripwireTriggered:
+                response = "I'm sorry, I can't answer that question."
+            return response
 
 
 def user_query(conversation_state: ConversationState) -> str:
