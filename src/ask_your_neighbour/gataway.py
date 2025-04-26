@@ -5,10 +5,13 @@ from typing import cast
 
 from agents import (
     Agent,
+    AgentHooks,
     FileSearchTool,
     InputGuardrailTripwireTriggered,
     ModelSettings,
+    RunContextWrapper,
     Runner,
+    TContext,
     trace,
 )
 from agents.mcp.server import MCPServerSse
@@ -45,7 +48,6 @@ def _get_event_loop() -> asyncio.AbstractEventLoop:
 async def _user_query(conversation_state: ConversationState) -> str:
     """Process a user query using an AI agent."""
     with trace("ask-your-neighbour"):
-        await conversation_state.document_store.upload_files(conversation_state.files)
 
         async with MCPServerSse(
             params={"url": "http://localhost:8000/sse"},
@@ -70,7 +72,9 @@ async def _user_query(conversation_state: ConversationState) -> str:
                 name="document_location_explorer",
                 instructions=DOCUMENT_EXPLORER_INSTRUCTIONS,
                 model="gpt-4o-mini",
-                tools=[FileSearchTool(vector_store_ids=[conversation_state.document_store.vector_store_id])],
+                # at this point the vector store id is not known, it will be set in the hooks
+                tools=[FileSearchTool(vector_store_ids=[])],
+                hooks=DocumentAgentHooks(conversation_state),
             )
 
             agent = Agent(
@@ -108,6 +112,23 @@ def user_query(conversation_state: ConversationState) -> str:
     loop = _get_event_loop()
     # Run the agent
     return loop.run_until_complete(_user_query(conversation_state))  # type: ignore
+
+
+class DocumentAgentHooks(AgentHooks):
+    def __init__(self, conversation_state: ConversationState):
+        self.conversation_state = conversation_state
+
+    async def on_start(
+        self,
+        context: RunContextWrapper[TContext],
+        agent: Agent[TContext],
+    ) -> None:
+        LOGGER.info("Uploading files to the vector store")
+        # before the agent is invoked, we need to upload all the files to the vector store
+        await self.conversation_state.document_store.upload_files(self.conversation_state.files)
+        # update the vector store id in the tool
+        agent.tools[0].vector_store_ids = [self.conversation_state.document_store.vector_store_id]
+        LOGGER.info("Files uploaded to the vector store")
 
 
 if __name__ == "__main__":
