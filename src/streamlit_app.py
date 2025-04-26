@@ -1,3 +1,4 @@
+import copy
 import functools
 import os
 
@@ -47,14 +48,21 @@ def main():
     # Accept user input
     if prompt_struct := st.chat_input("What would you like to ask?", accept_file=True):
         user_prompt = prompt_struct["text"]  # it should always be populated
-        user_message = {"role": "user", "content": user_prompt}
         files = prompt_struct.get("files", [])
-        LOGGER.info(f"User prompt: {user_prompt}, files: {files}.")
+        LOGGER.info(f"User prompt: '{user_prompt}', files: {files}.")
 
-        # Add user message to chat history
+        user_message = {"role": "user", "content": user_prompt}
         st.session_state.messages.append(user_message)
-        st.session_state.conversation_state.all_messages.append(user_message)
-        st.session_state.conversation_state.files.extend(files)
+
+        if files:
+            st.session_state.conversation_state.files.extend(files)
+            user_prompt_with_meta = copy.deepcopy(user_message)
+            file_names = [file.name for file in files]
+            user_prompt_with_meta["content"] += f"\n\n[some files were uploaded along with the message: {file_names}]"
+        else:
+            user_prompt_with_meta = user_message
+
+        st.session_state.conversation_state.all_messages.append(user_prompt_with_meta)
 
         # Display user message in chat message container
         with st.chat_message("user"):
