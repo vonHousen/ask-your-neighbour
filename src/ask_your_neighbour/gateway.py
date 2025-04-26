@@ -19,9 +19,9 @@ from agents import (
     handoff,
     trace,
 )
-from openai.types.responses.web_search_tool_param import UserLocation
 from agents.mcp.server import MCPServerSse
 from openai.types.responses import ResponseFunctionToolCall, ResponseOutputItemDoneEvent, ResponseTextDeltaEvent
+from openai.types.responses.web_search_tool_param import UserLocation
 
 from ask_your_neighbour.agent_specs.document_agent import DOCUMENT_EXPLORER_DESCRIPTION, DOCUMENT_EXPLORER_INSTRUCTIONS
 from ask_your_neighbour.agent_specs.orchestrator_agent import ORCHESTRATION_INSTRUCTIONS
@@ -30,7 +30,11 @@ from ask_your_neighbour.agent_specs.search_agent import SEARCH_AGENT_DESCRIPTION
 from ask_your_neighbour.agent_specs.summarization_agent import SUMMARIZATION_DESCRIPTION, SUMMARIZATION_INSTRUCTIONS
 from ask_your_neighbour.conversation_guardrail import guardrail_check
 from ask_your_neighbour.conversation_state import ConversationState
-from ask_your_neighbour.geoportal import VisualizationRequest, visualize_data_to_user
+from ask_your_neighbour.geoportal import (
+    VisualizationRequest,
+    visualize_data_to_user,
+    visualize_spatial_development_plan_to_user,
+)
 from ask_your_neighbour.utils import LOGGER, PULSE_BOX
 
 # Dictionary to store event loops per thread
@@ -65,7 +69,14 @@ async def _user_query(conversation_state: ConversationState) -> str:
             description="Fetch and shows user visualization",
             params_json_schema=VisualizationRequest.model_json_schema(),
             on_invoke_tool=visualize_to_user,
+        )
 
+        visualze_spatial_development_plan = visualize_spatial_development_plan_to_user(conversation_state)
+        visualize_spatial_development_plan_tool = FunctionTool(
+            name="visualize_spatial_development_plan_to_user",
+            description="Fetch and shows user visualization of spatial development plan",
+            params_json_schema=VisualizationRequest.model_json_schema(),
+            on_invoke_tool=visualze_spatial_development_plan,
         )
 
         async with MCPServerSse(
@@ -129,7 +140,9 @@ async def _user_query(conversation_state: ConversationState) -> str:
                         tool_name="search_agent",
                         tool_description=SEARCH_AGENT_DESCRIPTION,
                     ),
-                    visuaize_to_user_tool
+                    visuaize_to_user_tool,
+                    visualize_spatial_development_plan_tool
+
                 ],
                 handoffs=[handoff(
                     agent=summarization_agent,

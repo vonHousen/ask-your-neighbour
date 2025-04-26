@@ -6,7 +6,7 @@ import streamlit as st
 from dotenv import load_dotenv
 
 from ask_your_neighbour.conversation_state import ConversationState
-from ask_your_neighbour.gataway import user_query
+from ask_your_neighbour.gateway import user_query
 from ask_your_neighbour.utils import LOGGER
 
 
