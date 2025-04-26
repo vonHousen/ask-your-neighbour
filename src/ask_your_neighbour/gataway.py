@@ -19,6 +19,7 @@ from ask_your_neighbour.agent_specs.osm_agent import LOCATION_EXPLORER_DESCRIPTI
 from ask_your_neighbour.agent_specs.summarization_agent import SUMMARIZATION_DESCRIPTION, SUMMARIZATION_INSTRUCTIONS
 from ask_your_neighbour.conversation_guardrail import guardrail_check
 from ask_your_neighbour.conversation_state import ConversationState
+from ask_your_neighbour.geoportal import fetch_map
 from ask_your_neighbour.utils import LOGGER
 
 # Dictionary to store event loops per thread
@@ -90,6 +91,7 @@ async def _user_query(conversation_state: ConversationState) -> str:
                         tool_name="document_location_explorer",
                         tool_description=DOCUMENT_EXPLORER_DESCRIPTION,
                     ),
+                    fetch_map
                 ],
                 input_guardrails=[guardrail_check],
             )
